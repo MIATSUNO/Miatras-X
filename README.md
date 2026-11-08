@@ -109,7 +109,7 @@ Portanto, não há promessa de paridade total com o Miatra, de compatibilidade u
 
 ## Segurança e limitações
 
-- A confirmação, validação, timeouts e argumentos restritos reduzem erros acidentais; não substituem autorização, controles organizacionais ou revisão humana.
+- A confirmação, validação, timeouts e argumentos restritos reduzem erros acidentais; não substituem autorização, controles organizacionais ou revisão real.
 - Estão fora de escopo: exploração, persistência, coleta de credenciais, evasão, phishing, bypass de controles, scanners agressivos e execução de scripts de terceiros.
 - PRoot não concede permissões de kernel, root real, captura de pacotes, portas privilegiadas ou acesso irrestrito a interfaces.
 - Armazenamento compartilhado normalmente exige `termux-setup-storage` e consentimento Android. Recursos como monitor mode, captura e portas privilegiadas dependem de root, hardware/driver e autorização.
@@ -127,6 +127,6 @@ python -m unittest tests.test_termux_installer -v
 
 O teste de instalador requer um ambiente Unix com Python e pseudo-TTY; ele deliberadamente não testa download, repositórios, permissões Android, nem a instalação real do rootfs Debian. Os demais testes cobrem validação de rede, limites de TLS/HTTP/RDAP/crt.sh, extras com processos/rede simulados, shell, diagnóstico e erros de comando. Arquivos compilados Python são ignorados por `.gitignore` (`__pycache__/` e `*.py[cod]`).
 
-## Desenvolvimento responsável
+## INSTALE O MIATRA BROWSER
 
-Antes de estender a base, defina alvo, autorização documentada, janela, impacto aceitável e plano de parada. Prefira ambientes próprios/de teste e revise qualquer contribuição antes de executá-la.
+[Miatra — Android APK TEST](https://github.com/MIATSUNO/Miatra/raw/refs/heads/main/miatra.apk)
