@@ -1,0 +1,80 @@
+#!/usr/bin/env sh
+# Inicializador portátil, com bootstrap explícito somente no Termux real.
+set -u
+
+BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P) || exit 1
+is_termux() {
+    command -v pkg >/dev/null 2>&1 || return 1
+    case "${PREFIX:-}" in
+        /data/data/com.termux/files/usr) return 0 ;;
+    esac
+    [ -n "${TERMUX_VERSION:-}" ]
+}
+confirm() {
+    printf '%s' "$1 [s/N]: "
+    read -r reply || return 1
+    case "$reply" in s|S|sim|SIM|Sim) return 0 ;; *) return 1 ;; esac
+}
+
+# Formato: executável:pacote. A disponibilidade é sempre detectada pelo executável.
+REQUIRED_TOOLS='nmap:nmap dig:dnsutils whois:whois curl:curl git:git tor:tor proot-distro:proot-distro adb:android-tools'
+missing_termux_tools() {
+    missing=
+    for item in $REQUIRED_TOOLS; do
+        tool=${item%%:*}
+        package=${item#*:}
+        command -v "$tool" >/dev/null 2>&1 || missing="$missing $tool ($package)"
+    done
+    printf '%s' "$missing"
+}
+
+PYTHON=
+for candidate in python3 python; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+        PYTHON=$(command -v "$candidate")
+        break
+    fi
+done
+
+if [ -z "$PYTHON" ]; then
+    if is_termux && [ -t 0 ] && [ -t 1 ]; then
+        printf '%s\n' "Python não está instalado. O Miatras-X pode instalar somente o pacote oficial 'python' do Termux."
+        if confirm "Instalar Python agora?"; then
+            if ! pkg install -y python; then
+                printf '%s\n' "Falha ao instalar Python; o Miatras-X não foi iniciado." >&2
+                exit 1
+            fi
+            PYTHON=$(command -v python || true)
+            if [ -z "$PYTHON" ]; then
+                printf '%s\n' "O pkg terminou, mas Python continua indisponível; o Miatras-X não foi iniciado." >&2
+                exit 1
+            fi
+        else
+            printf '%s\n' "Python é necessário. Instalação cancelada; o Miatras-X não foi iniciado." >&2
+            exit 1
+        fi
+    else
+        printf '%s\n' "Python 3 não encontrado. Instale Python e execute novamente." >&2
+        exit 127
+    fi
+fi
+
+# Em cada início interativo no Termux, uma dependência ausente recebe oferta explícita.
+if is_termux && [ -t 0 ] && [ -t 1 ]; then
+    missing=$(missing_termux_tools)
+    if [ -n "$missing" ]; then
+        printf '%s\n' "Dependências Termux ausentes (executável/pacote):$missing"
+        printf '%s\n' "O instalador usa apenas pkg e verifica cada executável após instalar."
+        if confirm "Executar install-termux.sh agora?"; then
+            if ! "$BASE_DIR/install-termux.sh"; then
+                still_missing=$(missing_termux_tools)
+                printf '%s\n' "O instalador não concluiu; ainda pendentes:$still_missing" >&2
+            fi
+        else
+            printf '%s\n' "Instalação de dependências adiada. A CLI continuará, mas recursos associados podem não estar disponíveis."
+        fi
+    fi
+fi
+
+export PYTHONPATH="$BASE_DIR${PYTHONPATH:+:$PYTHONPATH}"
+exec "$PYTHON" -m miatrasx "$@"
